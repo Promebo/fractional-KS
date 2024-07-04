@@ -20,7 +20,6 @@ xx = 0.45
 
 ## external potential
 stagger_num = sites # sites/2 use for stagger potential, need to be the factor of sites
-#v_stagger = np.array([vvv,-vvv])
 v_stagger = np.zeros(stagger_num)
 v_stagger[stagger_num//2] = -1
 #v_stagger[stagger_num//2+10] = -1
@@ -30,20 +29,15 @@ for i in range(0,sites):
         if i%stagger_num == jjj:
             v_ext[i] = v_stagger[jjj]
 
-#cos external
-periodicN = 25 # 目前测试：11,14-20不行 
-print('periodicN is:',periodicN)
-g1 = 1
-for i in range(0,sites):
-    v_ext[i] = g1*np.cos(2*np.pi*i/periodicN)#+np.pi/periodicN)
+# #cos external
+# periodicN = 25 # 目前测试：11,14-20不行 
+# print('periodicN is:',periodicN)
+# g1 = 1
+# for i in range(0,sites):
+#     v_ext[i] = g1*np.cos(2*np.pi*i/periodicN)#+np.pi/periodicN)
 
 # initail guess
 n = np.ones(sites)*(sites-1)/sites # guess the initial density
-# n[0] += 0.001
-# n[25] -= 0.001
-
-# n = np.ones(sites)
-# n[0] = 0
 lanmbda_one = np.ones(sites)*0.1  # initial chemical potential
 t = np.ones(sites)*(0.63)
 j = np.ones(sites)*(0.17)
@@ -56,30 +50,9 @@ Dens = [(50-1)/50]
 
 # exchange correlation potential
 def v_xc_h(ni):
-    # vi = (-0.9141*ni+0.8266-ni*0.9141)
-    #vi = (-0.9018*ni+0.8156-ni*0.9018)
-    #v_I = -0.8869*ni+0.8003-ni*0.8869
-    v_I = -0.55239801*ni+0.49190226-ni*0.55239801
-    v_T = -2*np.sin((1-ni)*np.pi)*np.cos(ni*np.pi/2)/np.pi-0.3*np.sin(ni*np.pi)/np.pi+4*np.sin(ni*np.pi/2)*np.cos((1-ni)*np.pi)/np.pi
-    v_T = 0.5196076446421662*ni+0.754362785288478
-    #v_T = 0.3*ni-0.3+np.pi/4
-
-    #v_I = -0.2471656*ni+0.15673238-ni*0.2471656
-    v_I = -0.18111281*ni+0.09138764-ni*0.18111281
     v_I = -0.2136899*ni+0.12327306-ni*0.2136899
-    #v_I = -0.08111281*ni+0.09138764-ni*0.08111281
-    #v_I = -0.1728562*ni+0.08321955-ni*0.1728562
-    #v_I = -0.47942922*ni+0.40281635-ni*0.47942922
     v_T = xx*4/np.pi + 0.3*yy*(ni-1) - xx*yy*3*np.pi*(ni-1)*(ni-1)/2 - 0.3*np.pi*np.pi*yy*yy*(ni-1)*(ni-1)*(ni-1)/8
     vi = v_I + v_T
-    #vi = v_T
-    # vi = -0.5*ni
-    # v_k = -2*np.sin((1-ni)*np.pi)*np.cos(ni*np.pi/2)/np.pi-0.3*np.sin(ni*np.pi)/np.pi+4*np.sin(ni*np.pi/2)*np.cos((1-ni)*np.pi)/np.pi
-    # n = ni
-    # v1 = 2.24298*n - 2.43156 + 4*j0*np.square(np.sin(0.5*n*np.pi))/(n*np.pi*np.pi) + 8*t0*np.sin(n*np.pi)*np.sin(0.5*n*np.pi)/(n*np.pi*np.pi)
-    # v2 = 2.24298*n + 2*j0*np.sin(n*np.pi)/np.pi - 4*j0*np.square(np.sin(0.5*n*np.pi))/(n*np.pi*np.pi) + 8*t0*(np.cos(n*np.pi)*np.sin(0.5*n*np.pi)+0.5*np.sin(n*np.pi)*np.cos(n*np.pi*0.5))/(np.pi) - 8*t0*np.sin(n*np.pi)*np.sin(0.5*n*np.pi)/(n*np.pi*np.pi)
-    # v_I = v1 + v2
-    # vi = v_k + v_I
     return vi
 
 # find gaussian chemical potential
@@ -251,9 +224,6 @@ for ii in range(N):
     n_right[-1] = n[0]
 
     n_mean = (n+n_right)/2
-
-    # t_n = 2*t0*np.sin(n_mean*np.pi/2)/np.pi
-    # j_n = j0*np.sin(n_mean*np.pi/2)/np.pi + t0*np.sin(np.pi*(1-n_mean))/np.pi
     
     t_n = 2/np.pi - yy*(n_mean-1)*(n_mean-1)*np.pi/4
     j_n = xx*(-n_mean + 1) + 0.3/np.pi - yy*(n_mean-1)*(n_mean-1)*0.3*np.pi/8
@@ -295,29 +265,11 @@ print()
 print("sum of f0 is :", np.sum(abs(f0)))
 print("num of elec. :",np.sum(density))
 print("density is :",density)
-for i in range(len(density)):
-    print(density[i],end=' ')
-print()
 print("v is:",v_ext)
 print("kinetic is:",-2*np.dot(t,hihj)-2*np.dot(j,bibj))
 print("external energy is:",np.dot(v_ext,density))
 print("xc energy is",np.dot(density,-0.2136899*density+0.12327306))
 print("energy is :", E0)
 print()
-plt.plot(density)
 
-## %%
-# %%
-fig,ax = plt.subplots(3,1)
-ni = density
-v_kinetic = -2*np.sin((1-ni)*np.pi)*np.cos(ni*np.pi/2)/np.pi-0.3*np.sin(ni*np.pi)/np.pi+4*np.sin(ni*np.pi/2)*np.cos((1-ni)*np.pi)/np.pi
-ax[0].plot(v_ext,label='$V_{ext}$')
-ax[0].set_title('$V_{ext}$')
-ax[1].plot(v_xc_h(ni)-v_kinetic,label='$V_{xc}$')
-ax[1].set_title('$V_{xc}$')
-#ax[1].set_ylim([-1,1])
-ax[2].plot(v_kinetic,label='$V_{kinetic}$')
-ax[2].set_title('$V_{kinetic}$')
-#ax[2].set_ylim([-1,1.5])
-plt.tight_layout()
 # %%

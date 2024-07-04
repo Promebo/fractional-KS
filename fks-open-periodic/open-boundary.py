@@ -23,7 +23,6 @@ v_ext = np.zeros(sites)
 
 # initail guess for open boundary
 n = np.ones(sites)*(sites-1)/sites # guess the initial density
-#n= np.array([0.99944955,0.99776209,0.99484645,0.99061812,0.98507158,0.97844119,0.9711098,0.96382088,0.95700668,0.95137356,0.94677392,0.94354949,0.94118713,0.9398445,0.93914505,0.93914505,0.9398445,0.94118713,0.94354949,0.94677392,0.95137356,0.95700668,0.96382088,0.9711098,0.97844119,0.98507158,0.99061812,0.99484645,0.99776209,0.99944955])
 lanmbda= np.ones(sites)*0.1
 t = np.ones(sites-1)*0.6
 j = np.ones(sites-1)*0.3
@@ -43,28 +42,9 @@ F = [0]
 
 # exchange correlation
 def v_xc_h(ni):
-    #v_I = -0.8869*ni+0.8003-ni*0.8869
-    #v_I = -0.8869*ni+0.8003-ni*0.8869
-    v_I = -0.55239801*ni+0.49190226-ni*0.55239801
-    #v_I = -2.01595167*3*ni*ni + 2*2.8741*ni
-    v_T = -2*np.sin((1-ni)*np.pi)*np.cos(ni*np.pi/2)/np.pi-0.3*np.sin(ni*np.pi)/np.pi+4*np.sin(ni*np.pi/2)*np.cos((1-ni)*np.pi)/np.pi
-    v_T = 0.5196076446421662*ni+0.754362785288478
-
-    # v_I = -0.18111281*ni+0.09138764-ni*0.18111281
-    v_I = -0.2136899*ni+0.12327306#-ni*0.2136899
-    #v_I = -0.118111281*ni+0.09138764-ni*0.118111281
-    #v_I = -0.47942922*ni+0.40281635-ni*0.47942922
+    v_I = -0.2136899*ni+0.12327306
     v_T = xx*4/np.pi + 0.3*yy*(ni-1) - xx*yy*3*np.pi*(ni-1)*(ni-1)/2 - 0.3*np.pi*np.pi*yy*yy*(ni-1)*(ni-1)*(ni-1)/8
     vi = v_I + v_T
-    #vi = v_T
-    #vi = -2*np.sin((1-ni)*np.pi)*np.cos(ni*np.pi/2)/np.pi-0.3*np.sin(ni*np.pi)/np.pi+4*np.sin(ni*np.pi/2)*np.cos((1-ni)*np.pi)/np.pi
-    # v_k = -2*np.sin((1-ni)*np.pi)*np.cos(ni*np.pi/2)/np.pi-0.3*np.sin(ni*np.pi)/np.pi+4*np.sin(ni*np.pi/2)*np.cos((1-ni)*np.pi)/np.pi
-    # n = ni #2.24298*n - 2.43156
-    # v1 = 2.24298*n - 2.43156 + 4*j0*np.square(np.sin(0.5*n*np.pi))/(n*np.pi*np.pi) + 8*t0*np.sin(n*np.pi)*np.sin(0.5*n*np.pi)/(n*np.pi*np.pi)
-    # v2 = 2.24298*n + 2*j0*np.sin(n*np.pi)/np.pi - 4*j0*np.square(np.sin(0.5*n*np.pi))/(n*np.pi*np.pi) + 8*t0*(np.cos(n*np.pi)*np.sin(0.5*n*np.pi)+0.5*np.sin(n*np.pi)*np.cos(n*np.pi*0.5))/(np.pi) - 8*t0*np.sin(n*np.pi)*np.sin(0.5*n*np.pi)/(n*np.pi*np.pi)
-    # v_I = v1 + v2
-    # vi = (v_k + v_I)/1
-    #vi = (-0.9086*ni+0.8218-ni*0.9086)
     return vi
 
 # find gaussian chemical potential
@@ -130,7 +110,7 @@ def functionH(lanmbda):
 
 for ii in range(N):
     v = v_ext#/2
-    #v = (v_ext+ v_xc_h(n))#/2
+    v = (v_ext+ v_xc_h(n))#/2
     initial_guess = lanmbda
     optimizeresut = scipy.optimize.root(functionH, initial_guess,method="hybr",tol=0.0001)
     lanmbda = optimizeresut.x
@@ -204,11 +184,6 @@ for ii in range(N):
 
     n_mean = (n[:-1]+n_right[:-1])/2
 
-    t_n = 2*t0*np.sin(n_mean*np.pi/2)/np.pi
-    j_n = j0*np.sin(n_mean*np.pi/2)/np.pi + t0*np.sin(np.pi*(1-n_mean))/np.pi
-    # t_n = 0.605+0.032*n_mean
-    # j_n = 1.164-1.069*n_mean
-
     t_n = 2/np.pi - yy*(n_mean-1)*(n_mean-1)*np.pi/4
     j_n = xx*(-n_mean + 1) + 0.3/np.pi - yy*(n_mean-1)*(n_mean-1)*0.3*np.pi/8
 
@@ -249,24 +224,6 @@ print()
 print("sum of f0 is :", sum(abs(f0)))
 print("num of elec. :",sum(density))
 print("density is :",density)
-plt.plot(density)
-for i in range(len(density)):
-    print(density[i],end=' ')
-print()
 print("energy is :", E0)
-
-#%%
-fig,ax = plt.subplots(3,1)
-ni = density
-v_kinetic = -2*np.sin((1-ni)*np.pi)*np.cos(ni*np.pi/2)/np.pi-0.3*np.sin(ni*np.pi)/np.pi+4*np.sin(ni*np.pi/2)*np.cos((1-ni)*np.pi)/np.pi
-ax[0].plot(v_ext,label='$V_{ext}$')
-ax[0].set_title('$V_{ext}$')
-ax[1].plot(v_xc_h(ni)-v_kinetic,label='$V_{xc}$')
-ax[1].set_title('$V_{xc}$')
-#ax[1].set_ylim([-1,1])
-ax[2].plot(v_kinetic,label='$V_{kinetic}$')
-ax[2].set_title('$V_{kinetic}$')
-#ax[2].set_ylim([-1,1.5])
-plt.tight_layout()# %%
-
+plt.plot(density)
 # %%
