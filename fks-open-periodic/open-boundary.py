@@ -28,7 +28,7 @@ t = np.ones(sites-1)*0.6
 j = np.ones(sites-1)*0.3
 
 # # cos external
-# periodicN = 30 # 目前测试：16-30
+# periodicN = 30
 # g1 = 0.1
 # for i in range(0,sites):
 #     v_ext[i] = g1*np.cos(2*np.pi*i/periodicN+np.pi/periodicN)
