@@ -272,8 +272,7 @@ print("sum of f0 is :", np.sum(abs(f0)))
 print("num of elec. :",np.sum(density))
 print("num of hole:",holes)
 print("density is :",density)
-for i in range(len(density)):
-    print(density[i],end=' ')
+
 print()
 print("v is:",v_ext)
 print("energy is :", E0)
