@@ -221,8 +221,7 @@ print("num of elec. :",sum(density))
 print("num of holes :",holes)
 print("density is :",density)
 plt.plot(density)
-for i in range(len(density)):
-    print(density[i],end=' ')
+
 print()
 print("energy is :", E0)
 print("kinetic is:",-2*np.dot(t,hihj)-2*np.dot(j,bibj))
