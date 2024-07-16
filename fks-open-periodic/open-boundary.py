@@ -13,7 +13,7 @@ j0 = 0.3 # t-J model parameter
 N = 100 # iteration number
 sigma = 0.01 # smearing Gaussina width
 mix = 0.4  # mixing parameter
-holes = 1
+holes = 1 # number of hole
 
 # LDA parameters for hopping parameter
 A = 0.45
@@ -185,9 +185,6 @@ for ii in range(N):
     t_n = 2/np.pi - B*(n_mean-1)*(n_mean-1)*np.pi/4
     j_n = A*(-n_mean + 1) + 0.3/np.pi - B*(n_mean-1)*(n_mean-1)*0.3*np.pi/8
 
-    ## mean -field
-    t_new = t0*bibj
-    j_new = 0.5*j0*bibj+t0*hihj
     ## LDA
     t_new = t_n 
     j_new = j_n
@@ -212,7 +209,6 @@ E0 = 0
 E0 += -2*np.dot(t,hihj)
 E0 += -2*np.dot(j,bibj)
 E0 += np.dot(v_ext,density)
-#E0 += 2*t0*np.dot(hihj,bibj)+0.5*j0*np.dot(bibj,bibj) # MF
 E0 += np.dot(density,-0.2136899*density+0.12327306) # adding xc
 #output
 print()
