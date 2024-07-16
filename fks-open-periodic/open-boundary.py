@@ -142,7 +142,7 @@ for ii in range(N):
 
     if sites%2 != 0 :
         print("num of sites is not even!!")
-        break
+        #break
 
     density_h = 0
     for i in range(holes):
