@@ -7,43 +7,37 @@ import matplotlib.pyplot as plt
 import scipy.optimize as opt
 
 # parameter one hole
-sites = 50 # even site
+sites = 50 # need even site
 t0 = 1
-j0 = 0.3
-J = 0.3
-N = 100; # 外循环次数
-sigma = 0.01
-mix = 0.4
+j0 = 0.3 # t-J model parameter
+N = 100 # iteration number
+sigma = 0.01 # smearing Gaussina width
+mix = 0.4  # mixing parameter
+holes = 1
 
-yy = 0.12
-xx = 0.45
+# LDA parameters for hopping parameter
+A = 0.45
+B = 0.12
 
 # external potential
 v_ext = np.zeros(sites)
 
-# initail guess for open boundary
+# initail guessing for open boundary
 n = np.ones(sites)*(sites-1)/sites # guess the initial density
-lanmbda= np.ones(sites)*0.1
-t = np.ones(sites-1)*0.6
-j = np.ones(sites-1)*0.3
+lanmbda= np.ones(sites)*0.1 # initial chemical potential
+t = np.ones(sites-1)*0.6 # initial t_h
+j = np.ones(sites-1)*0.3 # initial t_f
 
-# # cos external
-# periodicN = 30
-# g1 = 0.1
-# for i in range(0,sites):
-#     v_ext[i] = g1*np.cos(2*np.pi*i/periodicN+np.pi/periodicN)
-
-# save for plot to check convergence
+# save to check convergence of t_h, t_f, and chemical potential
 T = [t[0]]
 J = [j[0]]
 X = [lanmbda[5]]
 F = [0]
 
-
 # exchange correlation
 def v_xc_h(ni):
-    v_I = -0.2136899*ni+0.12327306
-    v_T = xx*4/np.pi + 0.3*yy*(ni-1) - xx*yy*3*np.pi*(ni-1)*(ni-1)/2 - 0.3*np.pi*np.pi*yy*yy*(ni-1)*(ni-1)*(ni-1)/8
+    v_I = -0.2136899*ni+0.12327306-ni*0.2136899
+    v_T = A*4/np.pi + 0.3*B*(ni-1) - A*B*3*np.pi*(ni-1)*(ni-1)/2 - 0.3*np.pi*np.pi*B*B*(ni-1)*(ni-1)*(ni-1)/8
     vi = v_I + v_T
     return vi
 
@@ -56,7 +50,7 @@ def function_miu(miu):
 
     for i in range(sites):
         density_s += fai_s[:,i]*fai_s[:,i]*gaussian_f[i]
-    return (np.sum(density_s)-(sites-1)/2)
+    return (np.sum(density_s)-(sites-holes)/2)
 
 # find chemical potential to fufill no-double-occupied constrain
 def functionH(lanmbda):
@@ -89,11 +83,13 @@ def functionH(lanmbda):
     global fai_s
     E_s, fai_s = eigh(H_s)
 
-    density_h = fai_h[:,0]*fai_h[:,0]
+    density_h = 0
+    for i in range(holes):
+        density_h += fai_h[:,i]*fai_h[:,i]
 
     density_s = np.zeros(sites)
 
-    miu = E_s[sites//2-1] #guess
+    miu = E_s[sites//2-holes//2-1] #guess
     optimizeresut = opt.root(function_miu, miu,tol=0.0001)
     miu = optimizeresut.x
     gaussian_f = np.zeros(len(E_s))
@@ -109,14 +105,14 @@ def functionH(lanmbda):
 
 
 for ii in range(N):
-    v = v_ext#/2
-    v = (v_ext+ v_xc_h(n))#/2
+    # v = v_ext # w/o xc
+    v = (v_ext+ v_xc_h(n))
     initial_guess = lanmbda
     optimizeresut = scipy.optimize.root(functionH, initial_guess,method="hybr",tol=0.0001)
     lanmbda = optimizeresut.x
     lanmbda0 = lanmbda - np.mean(lanmbda)
-    
-    #lanmbda0 = np.zeros(len(lanmbda0))
+
+    #lanmbda0 = np.zeros(len(lanmbda0)) # w/o lambda
 
     aa=(lanmbda0-v)
     H_diag = np.diag(aa)
@@ -148,10 +144,12 @@ for ii in range(N):
         print("num of sites is not even!!")
         break
 
-    density_h = fai_h[:,0]*fai_h[:,0]
+    density_h = 0
+    for i in range(holes):
+        density_h += fai_h[:,i]*fai_h[:,i]
 
     density_s = np.zeros(sites)
-    miu = E_s[sites//2-1] #guess
+    miu = E_s[sites//2-holes//2-1] #guess
     optimizeresut = opt.root(function_miu, miu,tol=0.0001)
     miu = optimizeresut.x
     gaussian_f = np.zeros(len(E_s))
@@ -162,8 +160,9 @@ for ii in range(N):
         density_s += fai_s[:,i]*fai_s[:,i]*gaussian_f[i]*2
     
     hihj = np.zeros(sites-1)
-    for i in range(0,sites-1):
-        hihj[i] = fai_h[i,0]*fai_h[i+1,0]
+    for jj in range(holes):
+        for i in range(0,sites-1):
+            hihj[i] += fai_h[i,jj]*fai_h[i+1,jj]
 
     bibj = np.zeros(sites-1)
     for i in range(0,sites-1):
@@ -181,11 +180,10 @@ for ii in range(N):
     for iii in range(0,len(n)-1):
         n_right[iii] = n[iii+1]
     n_right[-1] = n[0]
-
     n_mean = (n[:-1]+n_right[:-1])/2
 
-    t_n = 2/np.pi - yy*(n_mean-1)*(n_mean-1)*np.pi/4
-    j_n = xx*(-n_mean + 1) + 0.3/np.pi - yy*(n_mean-1)*(n_mean-1)*0.3*np.pi/8
+    t_n = 2/np.pi - B*(n_mean-1)*(n_mean-1)*np.pi/4
+    j_n = A*(-n_mean + 1) + 0.3/np.pi - B*(n_mean-1)*(n_mean-1)*0.3*np.pi/8
 
     ## mean -field
     t_new = t0*bibj
@@ -206,24 +204,29 @@ for ii in range(N):
     F.append(sum(abs(f0)))
 
     if sum(abs(f0)) < 0.00001 :
-        #print("满足了归一条件，步数为：",end="")
         print(ii,end="  ")
-        #break
 
 density = 1 - density_h
+density = density_s
 E0 = 0
 E0 += -2*np.dot(t,hihj)
 E0 += -2*np.dot(j,bibj)
 E0 += np.dot(v_ext,density)
-print()
-print("noxc energy is :", E0)
 #E0 += 2*t0*np.dot(hihj,bibj)+0.5*j0*np.dot(bibj,bibj) # MF
 E0 += np.dot(density,-0.2136899*density+0.12327306) # adding xc
 #output
 print()
 print("sum of f0 is :", sum(abs(f0)))
 print("num of elec. :",sum(density))
+print("num of holes :",holes)
 print("density is :",density)
-print("energy is :", E0)
 plt.plot(density)
+for i in range(len(density)):
+    print(density[i],end=' ')
+print()
+print("energy is :", E0)
+print("kinetic is:",-2*np.dot(t,hihj)-2*np.dot(j,bibj))
+print("external energy is:",np.dot(v_ext,density))
+print("xc energy is",np.dot(density,-0.2136899*density+0.12327306))
+
 # %%
